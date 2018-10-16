@@ -1,4 +1,4 @@
-import { createReadStream } from 'fs';
+var fs = require('fs');
 const sharp = require('sharp'); // sharp supports GIF input, but not output
 
 const allowedMimes = {
@@ -9,9 +9,18 @@ const allowedMimes = {
 };
 
 function resize(path, format, width, height, imgFit) {
-    // TODO:ideally, use a generic image service here
-    // rather than using the file system
-    const readStream = createReadStream(path);
+    // TODO: throw an error if the MIMEtype does not fit in the subset above
+
+    // TODO: we probably want to determine a maximum image size here.
+    //       really easy to submit an extremely large request and blow up the server memory
+    //       excellent for heating up the server room, though! ;)
+
+    // TODO: ideally, use a generic image service that provides a ReadStream
+    //       here rather than using the file system directly
+
+    // no need to do too much error checking here - sharp already returns easily readable errors
+    // it may make sense to handle the response better in the express part of the app
+    const readStream = fs.createReadStream(path);
     let transform = sharp();
     if (format) {
         transform = transform.toFormat(format);
@@ -25,9 +34,12 @@ function resize(path, format, width, height, imgFit) {
 }
 
 function original(path) {
-    // TODO:ideally, use a generic image service here
-    // rather than using the file system
-    return createReadStream(path);
+    // TODO: ideally, use a generic image service that provides a ReadStream
+    //       here rather than using the file system directly
+    return fs.createReadStream(path);
 }
 
-export { resize, original };
+module.exports = {
+    resize: resize,
+    original: original
+};

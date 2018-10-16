@@ -1,11 +1,9 @@
-import express from 'express';
-import { resize, original } from './resize';
+var express = require('express');
+var resize = require('./resize');
 
 const server = express();
 
-// refactor this to be configurable at runtime
-// also consider abstracting this to an image service that 
-// can return any image so different data stores can be used
+// TODO: refactor this to be configurable at runtime
 const imageRootLocation = 'images';
 
 server.listen(1234, () => {
@@ -20,9 +18,9 @@ server.listen(1234, () => {
 server.get('/images/:user/:rawImageName', (req, res) => originalImage(req, res));
 
 function originalImage(req, res) {
-    var path = buildPath(req);
+    const path = buildPath(req);
     res.type('image/png');
-    original(path).pipe(res);
+    resize.original(path).pipe(res);
 }
 
 server.get("/images/:user/:rawImageName/:height/:width/:format/:fit?", (req, res) => {
@@ -39,7 +37,8 @@ server.get("/images/:user/:rawImageName/:height/:width/:format/:fit?", (req, res
     }
     const fit = req.params.fit;
     res.type(`image/${format}`);
-    resize(path, format, width, height, fit).pipe(res);
+    resize.resize(path, format, width, height, fit).pipe(res);
 });
 
+// TODO: consider if this belongs as an export in the resize service, or another service
 const buildPath = (req) => `${imageRootLocation}/${req.params.user}/${req.params.rawImageName}`;
